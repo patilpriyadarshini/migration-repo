@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: carddemo
+  
+  datasource:
+    url: jdbc:h2:mem:carddemo
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+    
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    defer-datasource-initialization: true
+    properties:
+      hibernate:
+        format_sql: true
+        
+  sql:
+    init:
+      mode: always
+
+server:
+  port: 8080
+  servlet:
+    context-path: /carddemo
+
+logging:
+  level:
+    com.modernized: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG

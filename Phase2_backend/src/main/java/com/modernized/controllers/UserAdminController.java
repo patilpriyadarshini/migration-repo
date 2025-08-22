@@ -7,11 +7,20 @@ import com.modernized.dto.PagedResponse;
 import com.modernized.entities.User;
 import com.modernized.repositories.UserRepository;
 import com.modernized.controllers.GlobalExceptionHandler.EntityNotFoundException;
+import com.modernized.utils.EntityMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
@@ -28,9 +37,11 @@ import java.util.stream.Collectors;
 public class UserAdminController {
 
     private final UserRepository userRepository;
+    private final EntityMapper entityMapper;
 
-    public UserAdminController(UserRepository userRepository) {
+    public UserAdminController(UserRepository userRepository, EntityMapper entityMapper) {
         this.userRepository = userRepository;
+        this.entityMapper = entityMapper;
     }
 
     /**
@@ -61,7 +72,7 @@ public class UserAdminController {
         }
         
         List<UserResponse> userResponses = userPage.getContent().stream()
-                .map(this::mapToUserResponse)
+                .map(entityMapper::mapToUserResponse)
                 .collect(Collectors.toList());
         
         PagedResponse<UserResponse> response = new PagedResponse<>(
@@ -93,7 +104,7 @@ public class UserAdminController {
         }
         
         User user = userOpt.get();
-        UserResponse response = mapToUserResponse(user);
+        UserResponse response = entityMapper.mapToUserResponse(user);
         
         return ResponseEntity.ok(response);
     }
@@ -124,7 +135,7 @@ public class UserAdminController {
         user.setSecUsrType(createRequest.getUserType());
         
         User savedUser = userRepository.save(user);
-        UserResponse response = mapToUserResponse(savedUser);
+        UserResponse response = entityMapper.mapToUserResponse(savedUser);
         
         return ResponseEntity.ok(response);
     }
@@ -158,7 +169,7 @@ public class UserAdminController {
         user.setSecUsrType(updateRequest.getUserType());
         
         User savedUser = userRepository.save(user);
-        UserResponse response = mapToUserResponse(savedUser);
+        UserResponse response = entityMapper.mapToUserResponse(savedUser);
         
         return ResponseEntity.ok(response);
     }
@@ -205,17 +216,9 @@ public class UserAdminController {
         }
         
         User user = userOpt.get();
-        UserResponse response = mapToUserResponse(user);
+        UserResponse response = entityMapper.mapToUserResponse(user);
         
         return ResponseEntity.ok(response);
     }
 
-    private UserResponse mapToUserResponse(User user) {
-        UserResponse response = new UserResponse();
-        response.setUserId(user.getSecUsrId());
-        response.setFirstName(user.getSecUsrFname());
-        response.setLastName(user.getSecUsrLname());
-        response.setUserType(user.getSecUsrType());
-        return response;
-    }
 }

@@ -275,7 +275,7 @@ This document contains business-level validation rules extracted from the CardDe
 ### RULE-VAL-035: Account Expiration Validation
 **Rule Description**: Transaction cannot be processed after account expiration date
 **COBOL Source Location**: CBTRN02C.cbl, lines 414-420
-**Field(s) Involved**: ACCT-EXPIRAION-DATE, DALYTRAN-ORIG-TS
+**Field(s) Involved**: ACCT-EXPIRATION-DATE, DALYTRAN-ORIG-TS
 **Validation Condition**: Account expiration date must be >= transaction origin date
 **Trigger Conditions**: During transaction validation (1500-B-LOOKUP-ACCT paragraph)
 

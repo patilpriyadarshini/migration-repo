@@ -62,7 +62,7 @@ public class AccountValidationService {
         
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            LocalDate expirationDate = LocalDate.parse(account.getAcctExpiraionDate(), formatter);
+            LocalDate expirationDate = LocalDate.parse(account.getAcctExpirationDate(), formatter);
             LocalDate transactionDate = LocalDate.parse(transactionTimestamp.substring(0, 10), formatter);
             
             return !expirationDate.isBefore(transactionDate);

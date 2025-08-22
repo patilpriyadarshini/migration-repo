@@ -6,11 +6,18 @@ import com.modernized.dto.PagedResponse;
 import com.modernized.entities.Card;
 import com.modernized.repositories.CardRepository;
 import com.modernized.controllers.GlobalExceptionHandler.EntityNotFoundException;
+import com.modernized.utils.EntityMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
@@ -27,9 +34,11 @@ import java.util.stream.Collectors;
 public class CardController {
 
     private final CardRepository cardRepository;
+    private final EntityMapper entityMapper;
 
-    public CardController(CardRepository cardRepository) {
+    public CardController(CardRepository cardRepository, EntityMapper entityMapper) {
         this.cardRepository = cardRepository;
+        this.entityMapper = entityMapper;
     }
 
     /**
@@ -66,7 +75,7 @@ public class CardController {
         }
         
         List<CardResponse> cardResponses = cardPage.getContent().stream()
-                .map(this::mapToCardResponse)
+                .map(entityMapper::mapToCardResponse)
                 .collect(Collectors.toList());
         
         PagedResponse<CardResponse> response = new PagedResponse<>(
@@ -98,7 +107,7 @@ public class CardController {
         }
         
         Card card = cardOpt.get();
-        CardResponse response = mapToCardResponse(card);
+        CardResponse response = entityMapper.mapToCardResponse(card);
         
         return ResponseEntity.ok(response);
     }
@@ -129,21 +138,11 @@ public class CardController {
         updateCardFromRequest(card, updateRequest);
         
         Card savedCard = cardRepository.save(card);
-        CardResponse response = mapToCardResponse(savedCard);
+        CardResponse response = entityMapper.mapToCardResponse(savedCard);
         
         return ResponseEntity.ok(response);
     }
 
-    private CardResponse mapToCardResponse(Card card) {
-        CardResponse response = new CardResponse();
-        response.setCardNum(card.getCardNum());
-        response.setAcctId(card.getCardAcctId());
-        response.setCardName(card.getCardEmbossedName());
-        response.setCardStatus(card.getCardActiveStatus());
-        response.setExpiryMonth(Integer.parseInt(card.getCardExpiraionDate().substring(0, 2)));
-        response.setExpiryYear(Integer.parseInt(card.getCardExpiraionDate().substring(3, 7)));
-        return response;
-    }
 
     private void updateCardFromRequest(Card card, CardUpdateRequest request) {
         card.setCardEmbossedName(request.getCardName());

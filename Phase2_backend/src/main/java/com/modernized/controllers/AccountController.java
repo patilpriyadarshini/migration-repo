@@ -7,8 +7,14 @@ import com.modernized.entities.Customer;
 import com.modernized.repositories.AccountRepository;
 import com.modernized.services.AccountValidationService;
 import com.modernized.controllers.GlobalExceptionHandler.EntityNotFoundException;
+import com.modernized.utils.EntityMapper;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import jakarta.validation.Valid;
 import java.util.Optional;
 
@@ -23,11 +29,14 @@ public class AccountController {
 
     private final AccountRepository accountRepository;
     private final AccountValidationService accountValidationService;
+    private final EntityMapper entityMapper;
 
     public AccountController(AccountRepository accountRepository, 
-                           AccountValidationService accountValidationService) {
+                           AccountValidationService accountValidationService,
+                           EntityMapper entityMapper) {
         this.accountRepository = accountRepository;
         this.accountValidationService = accountValidationService;
+        this.entityMapper = entityMapper;
     }
 
     /**
@@ -49,7 +58,7 @@ public class AccountController {
         }
         
         Account account = accountOpt.get();
-        AccountResponse response = mapToAccountResponse(account);
+        AccountResponse response = entityMapper.mapToAccountResponse(account);
         
         return ResponseEntity.ok(response);
     }
@@ -80,48 +89,11 @@ public class AccountController {
         updateAccountFromRequest(account, updateRequest);
         
         Account savedAccount = accountRepository.save(account);
-        AccountResponse response = mapToAccountResponse(savedAccount);
+        AccountResponse response = entityMapper.mapToAccountResponse(savedAccount);
         
         return ResponseEntity.ok(response);
     }
 
-    private AccountResponse mapToAccountResponse(Account account) {
-        AccountResponse response = new AccountResponse();
-        response.setAcctId(account.getAcctId());
-        response.setAcctActiveStatus(account.getAcctActiveStatus());
-        response.setAcctCurrBal(account.getAcctCurrBal());
-        response.setAcctCreditLimit(account.getAcctCreditLimit());
-        response.setAcctCashCreditLimit(account.getAcctCashCreditLimit());
-        response.setAcctOpenDate(account.getAcctOpenDate());
-        response.setAcctExpiraionDate(account.getAcctExpiraionDate());
-        response.setAcctReissueDate(account.getAcctReissueDate());
-        response.setAcctCurrCycCredit(account.getAcctCurrCycCredit());
-        response.setAcctCurrCycDebit(account.getAcctCurrCycDebit());
-        response.setAcctAddrZip(account.getAcctAddrZip());
-        response.setAcctGroupId(account.getAcctGroupId());
-        
-        if (account.getCustomer() != null) {
-            Customer customer = account.getCustomer();
-            response.setCustomerFirstName(customer.getCustFirstName());
-            response.setCustomerLastName(customer.getCustLastName());
-            response.setCustomerSsn(String.valueOf(customer.getCustSsn()));
-            response.setCustomerDateOfBirth(customer.getCustDobYyyyMmDd());
-            response.setCustomerFicoScore(customer.getCustFicoCreditScore());
-            response.setCustomerPhone1(customer.getCustPhoneNum1());
-            response.setCustomerPhone2(customer.getCustPhoneNum2());
-            response.setCustomerAddress1(customer.getCustAddrLine1());
-            response.setCustomerAddress2(customer.getCustAddrLine2());
-            response.setCustomerCity(customer.getCustAddrLine3());
-            response.setCustomerState(customer.getCustAddrStateCd());
-            response.setCustomerZipCode(customer.getCustAddrZip());
-            response.setCustomerCountry(customer.getCustAddrCountryCd());
-            response.setCustomerGovtIssuedId(customer.getCustGovtIssuedId());
-            response.setCustomerEftAccountId(customer.getCustEftAccountId());
-            response.setCustomerPriCardHolderInd(customer.getCustPriCardHolderInd());
-        }
-        
-        return response;
-    }
 
     private void updateAccountFromRequest(Account account, AccountUpdateRequest request) {
         account.setAcctActiveStatus(request.getAcctActiveStatus());

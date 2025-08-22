@@ -12,11 +12,18 @@ import com.modernized.repositories.AccountRepository;
 import com.modernized.services.TransactionProcessingService;
 import com.modernized.services.AccountValidationService;
 import com.modernized.controllers.GlobalExceptionHandler.EntityNotFoundException;
+import com.modernized.utils.EntityMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
@@ -39,17 +46,20 @@ public class TransactionController {
     private final AccountRepository accountRepository;
     private final TransactionProcessingService transactionProcessingService;
     private final AccountValidationService accountValidationService;
+    private final EntityMapper entityMapper;
 
     public TransactionController(TransactionRepository transactionRepository,
                                CardRepository cardRepository,
                                AccountRepository accountRepository,
                                TransactionProcessingService transactionProcessingService,
-                               AccountValidationService accountValidationService) {
+                               AccountValidationService accountValidationService,
+                               EntityMapper entityMapper) {
         this.transactionRepository = transactionRepository;
         this.cardRepository = cardRepository;
         this.accountRepository = accountRepository;
         this.transactionProcessingService = transactionProcessingService;
         this.accountValidationService = accountValidationService;
+        this.entityMapper = entityMapper;
     }
 
     /**
@@ -80,7 +90,7 @@ public class TransactionController {
         }
         
         List<TransactionResponse> transactionResponses = transactionPage.getContent().stream()
-                .map(this::mapToTransactionResponse)
+                .map(entityMapper::mapToTransactionResponse)
                 .collect(Collectors.toList());
         
         PagedResponse<TransactionResponse> response = new PagedResponse<>(
@@ -112,7 +122,7 @@ public class TransactionController {
         }
         
         Transaction transaction = transactionOpt.get();
-        TransactionResponse response = mapToTransactionResponse(transaction);
+        TransactionResponse response = entityMapper.mapToTransactionResponse(transaction);
         
         return ResponseEntity.ok(response);
     }
@@ -189,27 +199,10 @@ public class TransactionController {
         Transaction savedTransaction = transactionRepository.save(transaction);
         accountRepository.save(account);
         
-        TransactionResponse response = mapToTransactionResponse(savedTransaction);
+        TransactionResponse response = entityMapper.mapToTransactionResponse(savedTransaction);
         return ResponseEntity.ok(response);
     }
 
-    private TransactionResponse mapToTransactionResponse(Transaction transaction) {
-        TransactionResponse response = new TransactionResponse();
-        response.setTranId(transaction.getTranId());
-        response.setCardNum(transaction.getTranCardNum());
-        response.setTranTypeCd(String.valueOf(transaction.getTranTypeCd()));
-        response.setTranCatCd(String.valueOf(transaction.getTranCatCd()));
-        response.setTranSource(transaction.getTranSource());
-        response.setTranDesc(transaction.getTranDesc());
-        response.setTranAmt(transaction.getTranAmt());
-        response.setOrigTs(transaction.getTranOrigTs());
-        response.setProcTs(transaction.getTranProcTs());
-        response.setMerchantId(String.valueOf(transaction.getTranMerchantId()));
-        response.setMerchantName(transaction.getTranMerchantName());
-        response.setMerchantCity(transaction.getTranMerchantCity());
-        response.setMerchantZip(transaction.getTranMerchantZip());
-        return response;
-    }
 
     private String generateTransactionId() {
         return "T" + System.currentTimeMillis();

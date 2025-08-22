@@ -4,6 +4,7 @@ import com.modernized.dto.LoginRequest;
 import com.modernized.dto.LoginResponse;
 import com.modernized.entities.User;
 import com.modernized.repositories.UserRepository;
+import com.modernized.services.PasswordService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
@@ -19,9 +20,11 @@ import java.util.Optional;
 public class AuthController {
 
     private final UserRepository userRepository;
+    private final PasswordService passwordService;
 
-    public AuthController(UserRepository userRepository) {
+    public AuthController(UserRepository userRepository, PasswordService passwordService) {
         this.userRepository = userRepository;
+        this.passwordService = passwordService;
     }
 
     /**
@@ -49,7 +52,7 @@ public class AuthController {
         
         User user = userOpt.get();
         
-        if (!user.getSecUsrPwd().equals(loginRequest.getPassword())) {
+        if (!passwordService.verifyPassword(loginRequest.getPassword(), user.getSecUsrPwd())) {
             return ResponseEntity.ok(new LoginResponse(
                 loginRequest.getUserId(), 
                 null, 

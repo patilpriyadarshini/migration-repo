@@ -11,16 +11,16 @@ import com.modernized.repositories.CardRepository;
 import com.modernized.repositories.AccountRepository;
 import com.modernized.services.TransactionProcessingService;
 import com.modernized.services.AccountValidationService;
-import com.modernized.controllers.GlobalExceptionHandler.EntityNotFoundException;
+import com.modernized.utils.ControllerUtils;
+import com.modernized.utils.EntityMapper;
+import com.modernized.utils.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -79,15 +79,9 @@ public class TransactionController {
             transactionPage = transactionRepository.findAll(pageable);
         }
         
-        List<TransactionResponse> transactionResponses = transactionPage.getContent().stream()
-                .map(this::mapToTransactionResponse)
-                .collect(Collectors.toList());
-        
-        PagedResponse<TransactionResponse> response = new PagedResponse<>(
-                transactionResponses,
-                transactionPage.getNumber(),
-                transactionPage.getSize(),
-                transactionPage.getTotalElements()
+        PagedResponse<TransactionResponse> response = PaginationUtils.buildPagedResponse(
+                transactionPage, 
+                EntityMapper::mapToTransactionResponse
         );
         
         return ResponseEntity.ok(response);
@@ -105,15 +99,12 @@ public class TransactionController {
      */
     @GetMapping("/{transactionId}")
     public ResponseEntity<TransactionResponse> getTransaction(@PathVariable String transactionId) {
-        Optional<Transaction> transactionOpt = transactionRepository.findById(transactionId);
+        Transaction transaction = ControllerUtils.findEntityOrThrow(
+            transactionRepository.findById(transactionId), 
+            "Transaction not found"
+        );
         
-        if (transactionOpt.isEmpty()) {
-            throw new EntityNotFoundException("Transaction not found");
-        }
-        
-        Transaction transaction = transactionOpt.get();
-        TransactionResponse response = mapToTransactionResponse(transaction);
-        
+        TransactionResponse response = EntityMapper.mapToTransactionResponse(transaction);
         return ResponseEntity.ok(response);
     }
 
@@ -144,18 +135,16 @@ public class TransactionController {
         Account account = null;
         
         if (createRequest.getCardNum() != null && !createRequest.getCardNum().trim().isEmpty()) {
-            Optional<Card> cardOpt = cardRepository.findById(createRequest.getCardNum());
-            if (cardOpt.isEmpty()) {
-                throw new EntityNotFoundException("Card not found");
-            }
-            card = cardOpt.get();
+            card = ControllerUtils.findEntityOrThrow(
+                cardRepository.findById(createRequest.getCardNum()), 
+                "Card not found"
+            );
             account = card.getAccount();
         } else if (createRequest.getAcctId() != null) {
-            Optional<Account> accountOpt = accountRepository.findById(Long.valueOf(createRequest.getAcctId()));
-            if (accountOpt.isEmpty()) {
-                throw new EntityNotFoundException("Account not found");
-            }
-            account = accountOpt.get();
+            account = ControllerUtils.findEntityOrThrow(
+                accountRepository.findById(Long.valueOf(createRequest.getAcctId())), 
+                "Account not found"
+            );
         } else {
             throw new IllegalArgumentException("Either card number or account ID must be provided");
         }
@@ -189,27 +178,10 @@ public class TransactionController {
         Transaction savedTransaction = transactionRepository.save(transaction);
         accountRepository.save(account);
         
-        TransactionResponse response = mapToTransactionResponse(savedTransaction);
+        TransactionResponse response = EntityMapper.mapToTransactionResponse(savedTransaction);
         return ResponseEntity.ok(response);
     }
 
-    private TransactionResponse mapToTransactionResponse(Transaction transaction) {
-        TransactionResponse response = new TransactionResponse();
-        response.setTranId(transaction.getTranId());
-        response.setCardNum(transaction.getTranCardNum());
-        response.setTranTypeCd(String.valueOf(transaction.getTranTypeCd()));
-        response.setTranCatCd(String.valueOf(transaction.getTranCatCd()));
-        response.setTranSource(transaction.getTranSource());
-        response.setTranDesc(transaction.getTranDesc());
-        response.setTranAmt(transaction.getTranAmt());
-        response.setOrigTs(transaction.getTranOrigTs());
-        response.setProcTs(transaction.getTranProcTs());
-        response.setMerchantId(String.valueOf(transaction.getTranMerchantId()));
-        response.setMerchantName(transaction.getTranMerchantName());
-        response.setMerchantCity(transaction.getTranMerchantCity());
-        response.setMerchantZip(transaction.getTranMerchantZip());
-        return response;
-    }
 
     private String generateTransactionId() {
         return "T" + System.currentTimeMillis();

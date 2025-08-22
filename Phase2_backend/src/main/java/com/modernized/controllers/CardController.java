@@ -5,16 +5,15 @@ import com.modernized.dto.CardUpdateRequest;
 import com.modernized.dto.PagedResponse;
 import com.modernized.entities.Card;
 import com.modernized.repositories.CardRepository;
-import com.modernized.controllers.GlobalExceptionHandler.EntityNotFoundException;
+import com.modernized.utils.ControllerUtils;
+import com.modernized.utils.EntityMapper;
+import com.modernized.utils.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Card Management Controller
@@ -65,15 +64,9 @@ public class CardController {
             cardPage = cardRepository.findAll(pageable);
         }
         
-        List<CardResponse> cardResponses = cardPage.getContent().stream()
-                .map(this::mapToCardResponse)
-                .collect(Collectors.toList());
-        
-        PagedResponse<CardResponse> response = new PagedResponse<>(
-                cardResponses, 
-                cardPage.getNumber(), 
-                cardPage.getSize(), 
-                cardPage.getTotalElements()
+        PagedResponse<CardResponse> response = PaginationUtils.buildPagedResponse(
+                cardPage, 
+                EntityMapper::mapToCardResponse
         );
         
         return ResponseEntity.ok(response);
@@ -91,15 +84,12 @@ public class CardController {
      */
     @GetMapping("/{cardNumber}")
     public ResponseEntity<CardResponse> getCard(@PathVariable String cardNumber) {
-        Optional<Card> cardOpt = cardRepository.findById(cardNumber);
+        Card card = ControllerUtils.findEntityOrThrow(
+            cardRepository.findById(cardNumber), 
+            "Card not found"
+        );
         
-        if (cardOpt.isEmpty()) {
-            throw new EntityNotFoundException("Card not found");
-        }
-        
-        Card card = cardOpt.get();
-        CardResponse response = mapToCardResponse(card);
-        
+        CardResponse response = EntityMapper.mapToCardResponse(card);
         return ResponseEntity.ok(response);
     }
 
@@ -119,35 +109,17 @@ public class CardController {
             @PathVariable String cardNumber,
             @Valid @RequestBody CardUpdateRequest updateRequest) {
         
-        Optional<Card> cardOpt = cardRepository.findById(cardNumber);
+        Card card = ControllerUtils.findEntityOrThrow(
+            cardRepository.findById(cardNumber), 
+            "Card not found"
+        );
         
-        if (cardOpt.isEmpty()) {
-            throw new EntityNotFoundException("Card not found");
-        }
-        
-        Card card = cardOpt.get();
-        updateCardFromRequest(card, updateRequest);
+        EntityMapper.updateCardFromRequest(card, updateRequest);
         
         Card savedCard = cardRepository.save(card);
-        CardResponse response = mapToCardResponse(savedCard);
+        CardResponse response = EntityMapper.mapToCardResponse(savedCard);
         
         return ResponseEntity.ok(response);
     }
 
-    private CardResponse mapToCardResponse(Card card) {
-        CardResponse response = new CardResponse();
-        response.setCardNum(card.getCardNum());
-        response.setAcctId(card.getCardAcctId());
-        response.setCardName(card.getCardEmbossedName());
-        response.setCardStatus(card.getCardActiveStatus());
-        response.setExpiryMonth(Integer.parseInt(card.getCardExpiraionDate().substring(0, 2)));
-        response.setExpiryYear(Integer.parseInt(card.getCardExpiraionDate().substring(3, 7)));
-        return response;
-    }
-
-    private void updateCardFromRequest(Card card, CardUpdateRequest request) {
-        card.setCardEmbossedName(request.getCardName());
-        card.setCardActiveStatus(request.getCardStatus());
-        card.setCardExpiraionDate(request.getExpiryMonth() + "/" + request.getExpiryYear());
-    }
 }

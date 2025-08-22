@@ -6,12 +6,11 @@ import com.modernized.entities.Account;
 import com.modernized.repositories.AccountRepository;
 import com.modernized.services.AccountValidationService;
 import com.modernized.services.TransactionProcessingService;
-import com.modernized.controllers.GlobalExceptionHandler.EntityNotFoundException;
+import com.modernized.utils.ControllerUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
-import java.util.Optional;
 
 /**
  * Bill Payment Controller
@@ -46,13 +45,10 @@ public class BillPaymentController {
      */
     @GetMapping("/{accountId}")
     public ResponseEntity<BillPaymentResponse> getCurrentBalance(@PathVariable Long accountId) {
-        Optional<Account> accountOpt = accountRepository.findById(accountId);
-        
-        if (accountOpt.isEmpty()) {
-            throw new EntityNotFoundException("Account ID NOT found");
-        }
-        
-        Account account = accountOpt.get();
+        Account account = ControllerUtils.findEntityOrThrow(
+            accountRepository.findById(accountId), 
+            "Account ID NOT found"
+        );
         
         if (!accountValidationService.validateBillPaymentEligibility(account)) {
             return ResponseEntity.ok(new BillPaymentResponse(
@@ -97,13 +93,10 @@ public class BillPaymentController {
             ));
         }
         
-        Optional<Account> accountOpt = accountRepository.findById(paymentRequest.getAccountId());
-        
-        if (accountOpt.isEmpty()) {
-            throw new EntityNotFoundException("Account ID NOT found");
-        }
-        
-        Account account = accountOpt.get();
+        Account account = ControllerUtils.findEntityOrThrow(
+            accountRepository.findById(paymentRequest.getAccountId()), 
+            "Account ID NOT found"
+        );
         
         if (!accountValidationService.validateBillPaymentEligibility(account)) {
             return ResponseEntity.ok(new BillPaymentResponse(

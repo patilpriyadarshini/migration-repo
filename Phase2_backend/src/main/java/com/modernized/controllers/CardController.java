@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Card Management Controller
@@ -67,7 +66,7 @@ public class CardController {
         
         List<CardResponse> cardResponses = cardPage.getContent().stream()
                 .map(this::mapToCardResponse)
-                .collect(Collectors.toList());
+                .toList();
         
         PagedResponse<CardResponse> response = new PagedResponse<>(
                 cardResponses, 

@@ -12,6 +12,7 @@ jobs:
       with:
         node-version: lts/*
     - name: Install dependencies
+      working-directory: ./Phase2_frontend
       run: npm ci
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps

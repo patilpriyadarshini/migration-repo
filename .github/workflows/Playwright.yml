@@ -28,3 +28,9 @@ jobs:
         name: playwright-report
         path: Phase2_frontend/playwright-report/
         retention-days: 30
+    - name: Send report to n8n
+      run: |
+        curl -X POST \
+        -H "Content-Type: application/json" \
+        -d "$(cat playwright-report/index.html | jq -Rs .)" \
+        http://34.71.202.137:5678/webhook/playwright

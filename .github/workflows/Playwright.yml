@@ -25,21 +25,21 @@ jobs:
       run: npx playwright install --with-deps
     - name: Run Playwright tests
       working-directory: ./Phase2_frontend
-      run: npx playwright test
+      run: npx playwright test --reporter=html
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
         name: playwright-report
-        path: Phase2_frontend/playwright-report/
+        path: ./Phase2_frontend/playwright-report/
         retention-days: 30
     - name: Deploy report to github pages
       uses: peaceiris/actions-gh-pages@v4
       with: 
         github_token: ${{ secrets.GITHUB_TOKEN}}
-        publish_dir: playwright-report
+        publish_dir: ./Phase2_frontend/playwright-report
     - name: Send report to n8n
       run: |
         curl -X POST \
         -H "Content-Type: application/json" \
-        -d "$(cat playwright-report/index.html | jq -Rs .)" \
+        -d "$(cat ./Phase2_frontend/playwright-report/index.html | jq -Rs .)" \
         http://34.71.202.137:5678/webhook/playwright

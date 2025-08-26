@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './setup';
 import { loginAsRegularUser, loginAsAdmin, TEST_ACCOUNTS } from './utils/auth';
 import { AccountViewPage } from './page-objects/AccountViewPage';
 

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './setup';
 import { loginAsRegularUser, expectToBeOnLoginPage } from './utils/auth';
 
 test.describe('Protected Routes', () => {

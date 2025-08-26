@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './setup';
 import { loginAsRegularUser, TEST_ACCOUNTS } from './utils/auth';
 
 test.describe('Form Validation', () => {

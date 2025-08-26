@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './setup';
 import { loginAsRegularUser } from './utils/auth';
 
 test.describe('Card Management', () => {

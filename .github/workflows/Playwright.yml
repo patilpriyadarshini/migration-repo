@@ -13,10 +13,8 @@ jobs:
         node-version: lts/*
         cache: 'npm'
         cache-dependency-path: ./Phase2_frontend
-    - name: Install dependencies
-      working-directory: ./Phase2_frontend
-      
     - name: Run Playwright tests
+      working-directory: ./Phase2_frontend
       run: npx playwright test
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}

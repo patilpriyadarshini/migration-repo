@@ -1,7 +1,5 @@
 import { test, expect } from '@playwright/test';
 import { loginAsAdmin, loginAsRegularUser } from './utils/auth';
-import { MainMenuPage } from './page-objects/MainMenuPage';
-import { AdminMenuPage } from './page-objects/AdminMenuPage';
 
 test.describe('Navigation', () => {
   test.describe('Regular User Navigation', () => {
@@ -10,8 +8,6 @@ test.describe('Navigation', () => {
     });
 
     test('should display main menu options', async ({ page }) => {
-      const mainMenu = new MainMenuPage(page);
-      
       await expect(page.locator('text=Main Menu')).toBeVisible();
       await expect(page.locator('text=View Account')).toBeVisible();
       await expect(page.locator('text=View Account (Update)')).toBeVisible();
@@ -63,8 +59,6 @@ test.describe('Navigation', () => {
     });
 
     test('should display admin menu options', async ({ page }) => {
-      const adminMenu = new AdminMenuPage(page);
-      
       await expect(page.locator('text=Admin Menu')).toBeVisible();
       await expect(page.locator('text=User List')).toBeVisible();
       await expect(page.locator('text=User Add')).toBeVisible();

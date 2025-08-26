@@ -24,5 +24,5 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },
-  testIgnore: ['**/src/**', '**/node_modules/**'],
+  testIgnore: ['**/src/**', '**/node_modules/**', '**/tests/example.spec.ts'],
 });

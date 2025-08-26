@@ -12,6 +12,7 @@ jobs:
       with:
         node-version: lts/*
         cache: 'npm'
+        cache-dependency-path: ./Phase2_frontend
     - name: Install dependencies
       working-directory: ./Phase2_frontend
       run: npm ci

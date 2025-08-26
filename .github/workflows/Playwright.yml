@@ -32,14 +32,35 @@ jobs:
         name: playwright-report
         path: ./Phase2_frontend/playwright-report/
         retention-days: 30
-    - name: Deploy report to github pages
+    - name: Deploy report to GitHub Pages
       uses: peaceiris/actions-gh-pages@v4
+      if: ${{ !cancelled() }}
       with: 
-        github_token: ${{ secrets.GITHUB_TOKEN}}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./Phase2_frontend/playwright-report
-    - name: Send report to n8n
+        destination_dir: reports/${{ github.run_number }}
+        keep_files: true
+    - name: Send report metadata to n8n
+      if: ${{ !cancelled() && secrets.N8N_WEBHOOK_URL }}
       run: |
+        REPORT_DATA=$(jq -n \
+          --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+          --arg commit "${{ github.sha }}" \
+          --arg run_id "${{ github.run_id }}" \
+          --arg run_number "${{ github.run_number }}" \
+          --arg pages_url "https://patilpriyadarshini.github.io/migration-repo/reports/${{ github.run_number }}/index.html" \
+          --arg repository "${{ github.repository }}" \
+          '{
+            timestamp: $timestamp,
+            commit_sha: $commit,
+            run_id: $run_id,
+            run_number: $run_number,
+            pages_url: $pages_url,
+            repository: $repository,
+            event_type: "playwright_report_published"
+          }')
+        
         curl -X POST \
-        -H "Content-Type: application/json" \
-        -d "$(cat ./Phase2_frontend/playwright-report/index.html | jq -Rs .)" \
-        http://34.71.202.137:5678/webhook/playwright
+          -H "Content-Type: application/json" \
+          -d "$REPORT_DATA" \
+          "${{ secrets.N8N_WEBHOOK_URL }}" || echo "Webhook notification failed, but continuing..."

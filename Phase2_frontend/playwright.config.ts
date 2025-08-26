@@ -19,10 +19,13 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev',
+    command: process.env.CI ? 'npm run dev -- --port 5174 --host 0.0.0.0' : 'npm run dev -- --port 5174 --host localhost',
     url: 'http://localhost:5174',
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
+    timeout: process.env.CI ? 180 * 1000 : 120 * 1000,
+    stdout: 'pipe',
+    stderr: 'pipe',
+    ignoreHTTPSErrors: true,
   },
   testIgnore: ['**/src/**', '**/node_modules/**', '**/tests/example.spec.ts'],
 });

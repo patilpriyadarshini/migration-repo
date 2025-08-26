@@ -41,7 +41,7 @@ jobs:
         destination_dir: reports/${{ github.run_number }}
         keep_files: true
     - name: Send report metadata to n8n
-      if: ${{ !cancelled() && secrets.N8N_WEBHOOK_URL }}
+      if: ${{ !cancelled() && secrets.N8N_WEBHOOK_URL != '' }}
       run: |
         REPORT_DATA=$(jq -n \
           --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \

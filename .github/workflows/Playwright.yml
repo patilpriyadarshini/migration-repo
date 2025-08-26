@@ -28,6 +28,11 @@ jobs:
         name: playwright-report
         path: Phase2_frontend/playwright-report/
         retention-days: 30
+    - name: Deploy report to github pages
+      uses: peaceiris/actions-gh-pages@v4
+      with: 
+        github_token: ${{ secrets.GITHUB_TOKEN}}
+        publish_dir: playwright-report
     - name: Send report to n8n
       run: |
         curl -X POST \

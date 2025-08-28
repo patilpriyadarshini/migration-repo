@@ -80,17 +80,24 @@ jobs:
           }
           
           if [ -f "report.json" ]; then
-            # Parse JSON to extract test summary
-            PASSED_COUNT=$(jq -r '.stats.passed // 0' report.json 2>/dev/null || echo "0")
-            FAILED_COUNT=$(jq -r '.stats.failed // 0' report.json 2>/dev/null || echo "0")
+            # Parse JSON to extract test summary (Playwright uses different field names)
+            TOTAL_COUNT=$(jq -r '.stats.total // 0' report.json 2>/dev/null || echo "0")
+            PASSED_COUNT=$(jq -r '.stats.expected // 0' report.json 2>/dev/null || echo "0")
+            FAILED_COUNT=$(jq -r '.stats.unexpected // 0' report.json 2>/dev/null || echo "0")
             SKIPPED_COUNT=$(jq -r '.stats.skipped // 0' report.json 2>/dev/null || echo "0")
-            TOTAL_COUNT=$((PASSED_COUNT + FAILED_COUNT + SKIPPED_COUNT))
+            FLAKY_COUNT=$(jq -r '.stats.flaky // 0' report.json 2>/dev/null || echo "0")
             
             # Create meaningful test summary
-            TEST_SUMMARY="Tests: $TOTAL_COUNT total, $PASSED_COUNT passed, $FAILED_COUNT failed, $SKIPPED_COUNT skipped"
+            TEST_SUMMARY="Tests: $TOTAL_COUNT total, $PASSED_COUNT passed, $FAILED_COUNT failed"
+            if [ "$SKIPPED_COUNT" -gt 0 ]; then
+              TEST_SUMMARY="$TEST_SUMMARY, $SKIPPED_COUNT skipped"
+            fi
+            if [ "$FLAKY_COUNT" -gt 0 ]; then
+              TEST_SUMMARY="$TEST_SUMMARY, $FLAKY_COUNT flaky"
+            fi
             
-            # Extract test names for additional context (first 5 tests)
-            TEST_NAMES=$(jq -r '.tests[0:5][].title' report.json 2>/dev/null | tr '\n' ', ' | sed 's/, $//' || echo "")
+            # Extract test names for additional context (from suites)
+            TEST_NAMES=$(jq -r '.suites[]?.specs[]?.title // empty' report.json 2>/dev/null | head -5 | tr '\n' ', ' | sed 's/, $//' || echo "")
             if [ -n "$TEST_NAMES" ]; then
               TEST_SUMMARY="$TEST_SUMMARY. Tests: $TEST_NAMES"
             fi

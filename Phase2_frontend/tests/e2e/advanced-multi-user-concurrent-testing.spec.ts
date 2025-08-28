@@ -128,10 +128,10 @@ test.describe('Advanced Multi-User Concurrent Testing', () => {
         await loginPage.login('ADMIN001', 'admin123');
       }));
       
-      await Promise.all(adminMenuPages.map(menu => menu.navigateToUserAdd()));
+      await Promise.all(adminMenuPages.map(menu => menu.navigateToAddUser()));
       
       let submissionCount = 0;
-      const submissionResults = [];
+      const submissionResults: Array<{ success: boolean; timestamp: number }> = [];
       
       await Promise.all(pages.map(page => 
         page.route('**/api/admin/users', async (route) => {
@@ -221,7 +221,7 @@ test.describe('Advanced Multi-User Concurrent Testing', () => {
       await Promise.all(adminMenus.map(menu => menu.navigateToUserManagement()));
       
       let updateAttempts = 0;
-      const updateResults = [];
+      const updateResults: Array<{ success: boolean; version?: number; conflict?: boolean }> = [];
       
       await Promise.all(adminPages.map(page => 
         page.route('**/api/admin/users/USER0001', async (route) => {
@@ -332,7 +332,11 @@ test.describe('Advanced Multi-User Concurrent Testing', () => {
       await adminLogin.goto();
       await adminLogin.login('ADMIN001', 'admin123');
       
-      let transactionState = {
+      let transactionState: {
+        pending: Array<{ id: string; status: string; timestamp: string; [key: string]: any }>;
+        approved: Array<{ id: string; status: string; timestamp: string; [key: string]: any }>;
+        rejected: Array<{ id: string; status: string; timestamp: string; [key: string]: any }>;
+      } = {
         pending: [],
         approved: [],
         rejected: []
@@ -422,7 +426,7 @@ test.describe('Advanced Multi-User Concurrent Testing', () => {
         }
       }
       
-      await adminMenu.navigateToTransactionApproval();
+      await adminMenu.navigateToTransactions();
       
       await adminPage.waitForTimeout(1000);
       
@@ -456,7 +460,7 @@ test.describe('Advanced Multi-User Concurrent Testing', () => {
       );
       
       const pages = await Promise.all(contexts.map(ctx => ctx.newPage()));
-      const performanceMetrics = [];
+      const performanceMetrics: Array<{ sessionIndex: number; loginTime: number; navigationTime: number; dataLoadTime: number; totalTime: number }> = [];
       
       const loadTestOperations = pages.map(async (page, index) => {
         const startTime = Date.now();

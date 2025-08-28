@@ -15,7 +15,7 @@ test.describe('Advanced Data Integrity and Consistency Testing', () => {
       await loginPage.goto();
       await loginPage.login('USER0001', 'user1234');
       
-      let transactionLog = [];
+      let transactionLog: Array<{ id: string; amount: number; type: string; merchant: string; timestamp: string; status: string; error?: string }> = [];
       let accountBalance = 5000.00;
       let transactionCounter = 0;
       
@@ -58,7 +58,7 @@ test.describe('Advanced Data Integrity and Consistency Testing', () => {
             transactionLog.push(transaction);
           } else {
             transaction.status = 'failed';
-            transaction.error = 'Insufficient funds';
+            (transaction as any).error = 'Insufficient funds';
             transactionLog.push(transaction);
           }
           
@@ -129,7 +129,7 @@ test.describe('Advanced Data Integrity and Consistency Testing', () => {
       
       expect(completedTransactions.length).toBe(4);
       expect(failedTransactions.length).toBe(1);
-      expect(failedTransactions[0].error).toBe('Insufficient funds');
+      expect((failedTransactions[0] as any).error).toBe('Insufficient funds');
       
       await context.close();
     });
@@ -144,7 +144,7 @@ test.describe('Advanced Data Integrity and Consistency Testing', () => {
       await loginPage.goto();
       await loginPage.login('ADMIN001', 'admin123');
       
-      await adminMenu.navigateToUserAdd();
+      await adminMenu.navigateToAddUser();
       
       const validationRules = {
         userId: {
@@ -187,7 +187,7 @@ test.describe('Advanced Data Integrity and Consistency Testing', () => {
         
         if (method === 'POST') {
           const userData = await route.request().postDataJSON();
-          const errors = [];
+          const errors: string[] = [];
           
           if (!userData.userId) {
             errors.push('User ID is required');
@@ -354,7 +354,13 @@ test.describe('Advanced Data Integrity and Consistency Testing', () => {
       await loginPage.goto();
       await loginPage.login('USER0001', 'user1234');
       
-      let globalState = {
+      let globalState: {
+        user: { userId: string; sessionId: string };
+        accounts: Array<{ accountNumber: string; balance: number; type: string }>;
+        transactions: Array<{ id: string; amount: number; merchant: string; date: string }>;
+        cards: Array<{ cardNumber: string; status: string; expiryDate: string }>;
+        navigationHistory: Array<{ url: string; method: string; timestamp: string }>;
+      } = {
         user: { userId: 'USER0001', sessionId: 'SESSION123' },
         accounts: [],
         transactions: [],
@@ -472,7 +478,7 @@ test.describe('Advanced Data Integrity and Consistency Testing', () => {
       await loginPage.goto();
       await loginPage.login('ADMIN001', 'admin123');
       
-      let formState = {};
+      let formState: { [key: string]: any } = {};
       
       await testPage.route('**/api/admin/users**', async (route) => {
         const method = route.request().method();
@@ -502,7 +508,7 @@ test.describe('Advanced Data Integrity and Consistency Testing', () => {
         }
       });
       
-      await adminMenu.navigateToUserAdd();
+      await adminMenu.navigateToAddUser();
       
       const complexFormData = {
         userId: 'COMPLEX01',
@@ -524,10 +530,10 @@ test.describe('Advanced Data Integrity and Consistency Testing', () => {
         await firstNameInput.fill(complexFormData.firstName);
         await lastNameInput.fill(complexFormData.lastName);
         
-        await mainMenu.navigateToUserManagement();
+        await adminMenu.navigateToUserManagement();
         await testPage.waitForTimeout(1000);
         
-        await adminMenu.navigateToUserAdd();
+        await adminMenu.navigateToAddUser();
         await testPage.waitForTimeout(1000);
         
         const preservedUserId = await userIdInput.inputValue();

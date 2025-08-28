@@ -40,9 +40,24 @@ jobs:
         publish_dir: ./Phase2_frontend/playwright-report
         destination_dir: reports/${{ github.run_number }}
         keep_files: true
-    - name: Send report metadata to n8n
+        enable_jekyll: false
+        force_orphan: true
+    - name: Send comprehensive report data to n8n
       if: ${{ !cancelled() }}
       run: |
+        cd ./Phase2_frontend
+        
+        # Check if HTML report exists
+        if [ ! -f "playwright-report/index.html" ]; then
+          echo "HTML report not found, skipping n8n notification"
+          exit 0
+        fi
+        
+        # Extract test results summary from HTML report
+        TEST_SUMMARY=$(grep -o '<div class="suites">.*</div>' playwright-report/index.html | head -1 || echo "Test summary not found")
+        REPORT_SIZE=$(wc -c < playwright-report/index.html)
+        
+        # Create comprehensive report data with test results and metadata
         REPORT_DATA=$(jq -n \
           --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
           --arg commit "${{ github.sha }}" \
@@ -50,6 +65,9 @@ jobs:
           --arg run_number "${{ github.run_number }}" \
           --arg pages_url "https://patilpriyadarshini.github.io/migration-repo/reports/${{ github.run_number }}/index.html" \
           --arg repository "${{ github.repository }}" \
+          --arg test_summary "$TEST_SUMMARY" \
+          --arg report_size "$REPORT_SIZE" \
+          --arg workflow_status "completed" \
           '{
             timestamp: $timestamp,
             commit_sha: $commit,
@@ -57,10 +75,32 @@ jobs:
             run_number: $run_number,
             pages_url: $pages_url,
             repository: $repository,
-            event_type: "playwright_report_published"
+            event_type: "playwright_report_published",
+            test_summary_html: $test_summary,
+            report_size_bytes: ($report_size | tonumber),
+            workflow_status: $workflow_status,
+            content_type: "text/html",
+            message: "Playwright tests completed. Full HTML report available at GitHub Pages URL."
           }')
         
-        curl -X POST \
-          -H "Content-Type: application/json" \
-          -d "$REPORT_DATA" \
-          "${{ secrets.N8N_WEBHOOK_URL }}" || echo "Webhook notification failed, but continuing..."
+        # Send to n8n webhook with retry logic
+        if [ -n "${{ secrets.N8N_WEBHOOK_URL }}" ]; then
+          echo "Sending comprehensive report data to n8n webhook..."
+          echo "Report size: $REPORT_SIZE bytes"
+          echo "Pages URL: https://patilpriyadarshini.github.io/migration-repo/reports/${{ github.run_number }}/index.html"
+          
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d "$REPORT_DATA" \
+            "${{ secrets.N8N_WEBHOOK_URL }}" \
+            --max-time 30 \
+            --retry 3 \
+            --retry-delay 5 \
+            --fail-with-body || {
+              echo "Webhook failed after retries, but continuing workflow..."
+              echo "Webhook URL: ${{ secrets.N8N_WEBHOOK_URL }}"
+              echo "Payload size: $(echo "$REPORT_DATA" | wc -c) bytes"
+            }
+        else
+          echo "N8N_WEBHOOK_URL not configured, skipping webhook notification"
+        fi

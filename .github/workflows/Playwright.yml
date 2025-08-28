@@ -97,7 +97,7 @@ jobs:
             fi
             
             # Extract individual test results with pass/fail status
-            TEST_RESULTS_JSON=$(jq -c '[.suites[]?.specs[]? | {name: .title, status: (if .ok then "passed" else "failed" end), duration: (.tests[]?.results[]?.duration // 0 | add)}] // []' report.json 2>/dev/null || echo "[]")
+            TEST_RESULTS_JSON=$(jq -c '[.files[]?.tests[]? | {name: .title, status: (if .ok then "passed" else "failed" end), duration: .duration, outcome: .outcome}] // []' report.json 2>/dev/null || echo "[]")
             
             # Create summary of individual test results for display
             PASSED_TESTS=$(echo "$TEST_RESULTS_JSON" | jq -r '.[] | select(.status == "passed") | .name' | head -3 | tr '\n' ', ' | sed 's/, $//')

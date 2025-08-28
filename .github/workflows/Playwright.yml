@@ -53,11 +53,63 @@ jobs:
           exit 0
         fi
         
-        # Extract test results summary from HTML report
-        TEST_SUMMARY=$(grep -o '<div class="suites">.*</div>' playwright-report/index.html | head -1 || echo "Test summary not found")
+        # Extract test results from base64-encoded ZIP data in the HTML report
+        echo "Extracting test results from Playwright HTML report..."
+        
+        # Extract base64 data from JavaScript variable
+        BASE64_DATA=$(grep -o 'window\.playwrightReportBase64 = "[^"]*"' playwright-report/index.html | sed 's/.*= "data:application\/zip;base64,//' | sed 's/".*//')
+        
+        if [ -z "$BASE64_DATA" ]; then
+          echo "Warning: Could not extract base64 data from HTML report"
+          TEST_SUMMARY="Test data extraction failed - base64 data not found"
+          PASSED_COUNT=0
+          FAILED_COUNT=0
+          TOTAL_COUNT=0
+        else
+          # Decode base64 and extract ZIP contents to temporary directory
+          TEMP_DIR=$(mktemp -d)
+          echo "$BASE64_DATA" | base64 -d > "$TEMP_DIR/report.zip"
+          cd "$TEMP_DIR"
+          unzip -q report.zip 2>/dev/null || {
+            echo "Warning: Could not extract ZIP contents"
+            TEST_SUMMARY="Test data extraction failed - ZIP extraction error"
+            PASSED_COUNT=0
+            FAILED_COUNT=0
+            TOTAL_COUNT=0
+            cd - > /dev/null
+          }
+          
+          if [ -f "report.json" ]; then
+            # Parse JSON to extract test summary
+            PASSED_COUNT=$(jq -r '.stats.passed // 0' report.json 2>/dev/null || echo "0")
+            FAILED_COUNT=$(jq -r '.stats.failed // 0' report.json 2>/dev/null || echo "0")
+            SKIPPED_COUNT=$(jq -r '.stats.skipped // 0' report.json 2>/dev/null || echo "0")
+            TOTAL_COUNT=$((PASSED_COUNT + FAILED_COUNT + SKIPPED_COUNT))
+            
+            # Create meaningful test summary
+            TEST_SUMMARY="Tests: $TOTAL_COUNT total, $PASSED_COUNT passed, $FAILED_COUNT failed, $SKIPPED_COUNT skipped"
+            
+            # Extract test names for additional context (first 5 tests)
+            TEST_NAMES=$(jq -r '.tests[0:5][].title' report.json 2>/dev/null | tr '\n' ', ' | sed 's/, $//' || echo "")
+            if [ -n "$TEST_NAMES" ]; then
+              TEST_SUMMARY="$TEST_SUMMARY. Tests: $TEST_NAMES"
+            fi
+          else
+            echo "Warning: report.json not found in extracted ZIP"
+            TEST_SUMMARY="Test data extraction failed - report.json not found"
+            PASSED_COUNT=0
+            FAILED_COUNT=0
+            TOTAL_COUNT=0
+          fi
+          
+          # Clean up temporary directory
+          cd - > /dev/null
+          rm -rf "$TEMP_DIR"
+        fi
+        
         REPORT_SIZE=$(wc -c < playwright-report/index.html)
         
-        # Create comprehensive report data with test results and metadata
+        # Create comprehensive report data with extracted test results
         REPORT_DATA=$(jq -n \
           --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
           --arg commit "${{ github.sha }}" \
@@ -66,6 +118,9 @@ jobs:
           --arg pages_url "https://patilpriyadarshini.github.io/migration-repo/reports/${{ github.run_number }}/index.html" \
           --arg repository "${{ github.repository }}" \
           --arg test_summary "$TEST_SUMMARY" \
+          --arg passed_count "$PASSED_COUNT" \
+          --arg failed_count "$FAILED_COUNT" \
+          --arg total_count "$TOTAL_COUNT" \
           --arg report_size "$REPORT_SIZE" \
           --arg workflow_status "completed" \
           '{
@@ -76,7 +131,12 @@ jobs:
             pages_url: $pages_url,
             repository: $repository,
             event_type: "playwright_report_published",
-            test_summary_html: $test_summary,
+            test_summary: $test_summary,
+            test_results: {
+              passed: ($passed_count | tonumber),
+              failed: ($failed_count | tonumber),
+              total: ($total_count | tonumber)
+            },
             report_size_bytes: ($report_size | tonumber),
             workflow_status: $workflow_status,
             content_type: "text/html",
@@ -87,6 +147,7 @@ jobs:
         if [ -n "${{ secrets.N8N_WEBHOOK_URL }}" ]; then
           echo "Sending comprehensive report data to n8n webhook..."
           echo "Report size: $REPORT_SIZE bytes"
+          echo "Test summary: $TEST_SUMMARY"
           echo "Pages URL: https://patilpriyadarshini.github.io/migration-repo/reports/${{ github.run_number }}/index.html"
           
           curl -X POST \

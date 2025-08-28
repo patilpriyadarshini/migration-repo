@@ -40,9 +40,23 @@ jobs:
         publish_dir: ./Phase2_frontend/playwright-report
         destination_dir: reports/${{ github.run_number }}
         keep_files: true
-    - name: Send report metadata to n8n
+        enable_jekyll: false
+        force_orphan: true
+    - name: Send HTML report content directly to n8n
       if: ${{ !cancelled() }}
       run: |
+        cd ./Phase2_frontend
+        
+        # Check if HTML report exists
+        if [ ! -f "playwright-report/index.html" ]; then
+          echo "HTML report not found, skipping n8n notification"
+          exit 0
+        fi
+        
+        # Get HTML content and encode it properly for JSON
+        HTML_CONTENT=$(cat playwright-report/index.html | jq -Rs .)
+        
+        # Create comprehensive report data with HTML content
         REPORT_DATA=$(jq -n \
           --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
           --arg commit "${{ github.sha }}" \
@@ -50,6 +64,8 @@ jobs:
           --arg run_number "${{ github.run_number }}" \
           --arg pages_url "https://patilpriyadarshini.github.io/migration-repo/reports/${{ github.run_number }}/index.html" \
           --arg repository "${{ github.repository }}" \
+          --argjson html_content "$HTML_CONTENT" \
+          --arg report_size "$(wc -c < playwright-report/index.html)" \
           '{
             timestamp: $timestamp,
             commit_sha: $commit,
@@ -57,10 +73,29 @@ jobs:
             run_number: $run_number,
             pages_url: $pages_url,
             repository: $repository,
-            event_type: "playwright_report_published"
+            event_type: "playwright_report_published",
+            html_content: $html_content,
+            report_size_bytes: ($report_size | tonumber),
+            content_type: "text/html"
           }')
         
-        curl -X POST \
-          -H "Content-Type: application/json" \
-          -d "$REPORT_DATA" \
-          "${{ secrets.N8N_WEBHOOK_URL }}" || echo "Webhook notification failed, but continuing..."
+        # Send to n8n webhook with retry logic
+        if [ -n "${{ secrets.N8N_WEBHOOK_URL }}" ]; then
+          echo "Sending HTML report content to n8n webhook..."
+          echo "Report size: $(wc -c < playwright-report/index.html) bytes"
+          
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d "$REPORT_DATA" \
+            "${{ secrets.N8N_WEBHOOK_URL }}" \
+            --max-time 60 \
+            --retry 2 \
+            --retry-delay 5 \
+            --fail-with-body || {
+              echo "Webhook failed, but continuing workflow..."
+              echo "Webhook URL: ${{ secrets.N8N_WEBHOOK_URL }}"
+              echo "Payload size: $(echo "$REPORT_DATA" | wc -c) bytes"
+            }
+        else
+          echo "N8N_WEBHOOK_URL not configured, skipping webhook notification"
+        fi

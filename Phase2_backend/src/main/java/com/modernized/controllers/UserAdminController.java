@@ -6,6 +6,7 @@ import com.modernized.dto.UserUpdateRequest;
 import com.modernized.dto.PagedResponse;
 import com.modernized.entities.User;
 import com.modernized.repositories.UserRepository;
+import com.modernized.services.PasswordService;
 import com.modernized.controllers.GlobalExceptionHandler.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,9 +29,11 @@ import java.util.stream.Collectors;
 public class UserAdminController {
 
     private final UserRepository userRepository;
+    private final PasswordService passwordService;
 
-    public UserAdminController(UserRepository userRepository) {
+    public UserAdminController(UserRepository userRepository, PasswordService passwordService) {
         this.userRepository = userRepository;
+        this.passwordService = passwordService;
     }
 
     /**
@@ -120,7 +123,7 @@ public class UserAdminController {
         user.setSecUsrId(createRequest.getUserId());
         user.setSecUsrFname(createRequest.getFirstName());
         user.setSecUsrLname(createRequest.getLastName());
-        user.setSecUsrPwd(createRequest.getPassword());
+        user.setSecUsrPwd(passwordService.hashPassword(createRequest.getPassword()));
         user.setSecUsrType(createRequest.getUserType());
         
         User savedUser = userRepository.save(user);
@@ -154,7 +157,7 @@ public class UserAdminController {
         User user = userOpt.get();
         user.setSecUsrFname(updateRequest.getFirstName());
         user.setSecUsrLname(updateRequest.getLastName());
-        user.setSecUsrPwd(updateRequest.getPassword());
+        user.setSecUsrPwd(passwordService.hashPassword(updateRequest.getPassword()));
         user.setSecUsrType(updateRequest.getUserType());
         
         User savedUser = userRepository.save(user);

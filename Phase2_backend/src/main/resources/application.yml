@@ -10,7 +10,7 @@ spring:
     
   h2:
     console:
-      enabled: true
+      enabled: false
       path: /h2-console
       
   jpa:
@@ -34,6 +34,7 @@ server:
 
 logging:
   level:
-    com.modernized: DEBUG
-    org.springframework.web: DEBUG
-    org.hibernate.SQL: DEBUG
+    com.modernized: INFO
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
+    org.springframework.security: WARN

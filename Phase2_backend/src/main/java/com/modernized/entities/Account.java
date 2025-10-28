@@ -46,8 +46,8 @@ public class Account {
 
     @NotNull
     @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "Date must be in YYYY-MM-DD format")
-    @Column(name = "acct_expiraion_date", length = 10)
-    private String acctExpiraionDate;
+    @Column(name = "acct_expiration_date", length = 10)
+    private String acctExpirationDate;
 
     @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "Date must be in YYYY-MM-DD format")
     @Column(name = "acct_reissue_date", length = 10)
@@ -84,7 +84,7 @@ public class Account {
 
     public Account(Long acctId, String acctActiveStatus, BigDecimal acctCurrBal,
                   BigDecimal acctCreditLimit, BigDecimal acctCashCreditLimit,
-                  String acctOpenDate, String acctExpiraionDate, String acctReissueDate,
+                  String acctOpenDate, String acctExpirationDate, String acctReissueDate,
                   BigDecimal acctCurrCycCredit, BigDecimal acctCurrCycDebit,
                   String acctAddrZip, String acctGroupId) {
         this.acctId = acctId;
@@ -93,7 +93,7 @@ public class Account {
         this.acctCreditLimit = acctCreditLimit;
         this.acctCashCreditLimit = acctCashCreditLimit;
         this.acctOpenDate = acctOpenDate;
-        this.acctExpiraionDate = acctExpiraionDate;
+        this.acctExpirationDate = acctExpirationDate;
         this.acctReissueDate = acctReissueDate;
         this.acctCurrCycCredit = acctCurrCycCredit;
         this.acctCurrCycDebit = acctCurrCycDebit;
@@ -119,8 +119,8 @@ public class Account {
     public String getAcctOpenDate() { return acctOpenDate; }
     public void setAcctOpenDate(String acctOpenDate) { this.acctOpenDate = acctOpenDate; }
 
-    public String getAcctExpiraionDate() { return acctExpiraionDate; }
-    public void setAcctExpiraionDate(String acctExpiraionDate) { this.acctExpiraionDate = acctExpiraionDate; }
+    public String getAcctExpirationDate() { return acctExpirationDate; }
+    public void setAcctExpirationDate(String acctExpirationDate) { this.acctExpirationDate = acctExpirationDate; }
 
     public String getAcctReissueDate() { return acctReissueDate; }
     public void setAcctReissueDate(String acctReissueDate) { this.acctReissueDate = acctReissueDate; }

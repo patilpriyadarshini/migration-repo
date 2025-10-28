@@ -1,6 +1,7 @@
 package com.modernized.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import java.util.List;
 import java.util.Objects;
 
@@ -13,15 +14,21 @@ import java.util.Objects;
 public class Customer {
 
     @Id
+    @NotNull
     @Column(name = "cust_id")
     private Long custId;
 
+    @NotNull
+    @Size(min = 1, max = 25)
     @Column(name = "cust_first_name", length = 25)
     private String custFirstName;
 
+    @Size(max = 25)
     @Column(name = "cust_middle_name", length = 25)
     private String custMiddleName;
 
+    @NotNull
+    @Size(min = 1, max = 25)
     @Column(name = "cust_last_name", length = 25)
     private String custLastName;
 
@@ -49,12 +56,17 @@ public class Customer {
     @Column(name = "cust_phone_num_2", length = 15)
     private String custPhoneNum2;
 
+    @NotNull
+    @Min(value = 100000000L, message = "SSN must be 9 digits")
+    @Max(value = 999999999L, message = "SSN must be 9 digits")
     @Column(name = "cust_ssn")
     private Long custSsn;
 
+    @Size(max = 20)
     @Column(name = "cust_govt_issued_id", length = 20)
     private String custGovtIssuedId;
 
+    @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "Date must be in YYYY-MM-DD format")
     @Column(name = "cust_dob_yyyy_mm_dd", length = 10)
     private String custDobYyyyMmDd;
 

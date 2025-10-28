@@ -9,7 +9,7 @@ public class AccountResponse {
     private BigDecimal acctCreditLimit;
     private BigDecimal acctCashCreditLimit;
     private String acctOpenDate;
-    private String acctExpiraionDate;
+    private String acctExpirationDate;
     private String acctReissueDate;
     private BigDecimal acctCurrCycCredit;
     private BigDecimal acctCurrCycDebit;
@@ -53,8 +53,8 @@ public class AccountResponse {
     public String getAcctOpenDate() { return acctOpenDate; }
     public void setAcctOpenDate(String acctOpenDate) { this.acctOpenDate = acctOpenDate; }
 
-    public String getAcctExpiraionDate() { return acctExpiraionDate; }
-    public void setAcctExpiraionDate(String acctExpiraionDate) { this.acctExpiraionDate = acctExpiraionDate; }
+    public String getAcctExpirationDate() { return acctExpirationDate; }
+    public void setAcctExpirationDate(String acctExpirationDate) { this.acctExpirationDate = acctExpirationDate; }
 
     public String getAcctReissueDate() { return acctReissueDate; }
     public void setAcctReissueDate(String acctReissueDate) { this.acctReissueDate = acctReissueDate; }

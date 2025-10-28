@@ -1,6 +1,7 @@
 package com.modernized.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import java.util.Objects;
 
 /**
@@ -12,18 +13,29 @@ import java.util.Objects;
 public class User {
 
     @Id
+    @NotNull
+    @Size(min = 1, max = 8)
     @Column(name = "sec_usr_id", length = 8)
     private String secUsrId;
 
+    @NotNull
+    @Size(min = 1, max = 20)
     @Column(name = "sec_usr_fname", length = 20)
     private String secUsrFname;
 
+    @NotNull
+    @Size(min = 1, max = 20)
     @Column(name = "sec_usr_lname", length = 20)
     private String secUsrLname;
 
-    @Column(name = "sec_usr_pwd", length = 8)
+    @NotNull
+    @Size(min = 1, max = 255)
+    @Column(name = "sec_usr_pwd", length = 255)
     private String secUsrPwd;
 
+    @NotNull
+    @Size(min = 1, max = 1)
+    @Pattern(regexp = "[AR]", message = "User type must be 'A' (Admin) or 'R' (Regular)")
     @Column(name = "sec_usr_type", length = 1)
     private String secUsrType;
 

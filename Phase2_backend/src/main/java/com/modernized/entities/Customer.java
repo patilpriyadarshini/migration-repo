@@ -13,6 +13,7 @@ import java.util.Objects;
 public class Customer {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "cust_id")
     private Long custId;
 

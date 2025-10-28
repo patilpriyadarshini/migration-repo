@@ -140,14 +140,14 @@ public class CardController {
         response.setAcctId(card.getCardAcctId());
         response.setCardName(card.getCardEmbossedName());
         response.setCardStatus(card.getCardActiveStatus());
-        response.setExpiryMonth(Integer.parseInt(card.getCardExpiraionDate().substring(0, 2)));
-        response.setExpiryYear(Integer.parseInt(card.getCardExpiraionDate().substring(3, 7)));
+        response.setExpiryMonth(Integer.parseInt(card.getCardExpirationDate().substring(0, 2)));
+        response.setExpiryYear(Integer.parseInt(card.getCardExpirationDate().substring(3, 7)));
         return response;
     }
 
     private void updateCardFromRequest(Card card, CardUpdateRequest request) {
         card.setCardEmbossedName(request.getCardName());
         card.setCardActiveStatus(request.getCardStatus());
-        card.setCardExpiraionDate(request.getExpiryMonth() + "/" + request.getExpiryYear());
+        card.setCardExpirationDate(request.getExpiryMonth() + "/" + request.getExpiryYear());
     }
 }

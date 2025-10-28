@@ -27,7 +27,7 @@ public class AccountUpdateRequest {
 
     @NotBlank(message = "Account expiration date cannot be empty")
     @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "Date must be in YYYY-MM-DD format")
-    private String acctExpiraionDate;
+    private String acctExpirationDate;
 
     @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "Date must be in YYYY-MM-DD format")
     private String acctReissueDate;
@@ -91,8 +91,8 @@ public class AccountUpdateRequest {
     public String getAcctOpenDate() { return acctOpenDate; }
     public void setAcctOpenDate(String acctOpenDate) { this.acctOpenDate = acctOpenDate; }
 
-    public String getAcctExpiraionDate() { return acctExpiraionDate; }
-    public void setAcctExpiraionDate(String acctExpiraionDate) { this.acctExpiraionDate = acctExpiraionDate; }
+    public String getAcctExpirationDate() { return acctExpirationDate; }
+    public void setAcctExpirationDate(String acctExpirationDate) { this.acctExpirationDate = acctExpirationDate; }
 
     public String getAcctReissueDate() { return acctReissueDate; }
     public void setAcctReissueDate(String acctReissueDate) { this.acctReissueDate = acctReissueDate; }

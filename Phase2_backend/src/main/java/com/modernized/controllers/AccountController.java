@@ -5,7 +5,6 @@ import com.modernized.dto.AccountUpdateRequest;
 import com.modernized.entities.Account;
 import com.modernized.entities.Customer;
 import com.modernized.repositories.AccountRepository;
-import com.modernized.services.AccountValidationService;
 import com.modernized.controllers.GlobalExceptionHandler.EntityNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,12 +21,9 @@ import java.util.Optional;
 public class AccountController {
 
     private final AccountRepository accountRepository;
-    private final AccountValidationService accountValidationService;
 
-    public AccountController(AccountRepository accountRepository, 
-                           AccountValidationService accountValidationService) {
+    public AccountController(AccountRepository accountRepository) {
         this.accountRepository = accountRepository;
-        this.accountValidationService = accountValidationService;
     }
 
     /**

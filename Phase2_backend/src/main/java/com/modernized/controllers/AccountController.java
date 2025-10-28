@@ -93,7 +93,7 @@ public class AccountController {
         response.setAcctCreditLimit(account.getAcctCreditLimit());
         response.setAcctCashCreditLimit(account.getAcctCashCreditLimit());
         response.setAcctOpenDate(account.getAcctOpenDate());
-        response.setAcctExpiraionDate(account.getAcctExpiraionDate());
+        response.setAcctExpirationDate(account.getAcctExpirationDate());
         response.setAcctReissueDate(account.getAcctReissueDate());
         response.setAcctCurrCycCredit(account.getAcctCurrCycCredit());
         response.setAcctCurrCycDebit(account.getAcctCurrCycDebit());
@@ -129,7 +129,7 @@ public class AccountController {
         account.setAcctCreditLimit(request.getAcctCreditLimit());
         account.setAcctCashCreditLimit(request.getAcctCashCreditLimit());
         account.setAcctOpenDate(request.getAcctOpenDate());
-        account.setAcctExpiraionDate(request.getAcctExpiraionDate());
+        account.setAcctExpirationDate(request.getAcctExpirationDate());
         account.setAcctReissueDate(request.getAcctReissueDate());
         account.setAcctCurrCycCredit(request.getAcctCurrCycCredit());
         account.setAcctCurrCycDebit(request.getAcctCurrCycDebit());

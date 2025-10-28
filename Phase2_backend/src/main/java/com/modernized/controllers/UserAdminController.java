@@ -6,7 +6,8 @@ import com.modernized.dto.UserUpdateRequest;
 import com.modernized.dto.PagedResponse;
 import com.modernized.entities.User;
 import com.modernized.repositories.UserRepository;
-import com.modernized.controllers.GlobalExceptionHandler.EntityNotFoundException;
+import com.modernized.utils.EntityMapper;
+import com.modernized.utils.ControllerUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -28,9 +29,11 @@ import java.util.stream.Collectors;
 public class UserAdminController {
 
     private final UserRepository userRepository;
+    private final EntityMapper entityMapper;
 
-    public UserAdminController(UserRepository userRepository) {
+    public UserAdminController(UserRepository userRepository, EntityMapper entityMapper) {
         this.userRepository = userRepository;
+        this.entityMapper = entityMapper;
     }
 
     /**
@@ -61,7 +64,7 @@ public class UserAdminController {
         }
         
         List<UserResponse> userResponses = userPage.getContent().stream()
-                .map(this::mapToUserResponse)
+                .map(entityMapper::mapToUserResponse)
                 .collect(Collectors.toList());
         
         PagedResponse<UserResponse> response = new PagedResponse<>(
@@ -86,14 +89,8 @@ public class UserAdminController {
      */
     @GetMapping("/{userId}")
     public ResponseEntity<UserResponse> getUser(@PathVariable String userId) {
-        Optional<User> userOpt = userRepository.findById(userId);
-        
-        if (userOpt.isEmpty()) {
-            throw new EntityNotFoundException("User not found");
-        }
-        
-        User user = userOpt.get();
-        UserResponse response = mapToUserResponse(user);
+        User user = ControllerUtils.findEntityById(userRepository, userId, "User");
+        UserResponse response = entityMapper.mapToUserResponse(user);
         
         return ResponseEntity.ok(response);
     }
@@ -124,7 +121,7 @@ public class UserAdminController {
         user.setSecUsrType(createRequest.getUserType());
         
         User savedUser = userRepository.save(user);
-        UserResponse response = mapToUserResponse(savedUser);
+        UserResponse response = entityMapper.mapToUserResponse(savedUser);
         
         return ResponseEntity.ok(response);
     }
@@ -145,20 +142,14 @@ public class UserAdminController {
             @PathVariable String userId,
             @Valid @RequestBody UserUpdateRequest updateRequest) {
         
-        Optional<User> userOpt = userRepository.findById(userId);
-        
-        if (userOpt.isEmpty()) {
-            throw new EntityNotFoundException("User not found");
-        }
-        
-        User user = userOpt.get();
+        User user = ControllerUtils.findEntityById(userRepository, userId, "User");
         user.setSecUsrFname(updateRequest.getFirstName());
         user.setSecUsrLname(updateRequest.getLastName());
         user.setSecUsrPwd(updateRequest.getPassword());
         user.setSecUsrType(updateRequest.getUserType());
         
         User savedUser = userRepository.save(user);
-        UserResponse response = mapToUserResponse(savedUser);
+        UserResponse response = entityMapper.mapToUserResponse(savedUser);
         
         return ResponseEntity.ok(response);
     }
@@ -175,12 +166,7 @@ public class UserAdminController {
      */
     @DeleteMapping("/{userId}")
     public ResponseEntity<String> deleteUser(@PathVariable String userId) {
-        Optional<User> userOpt = userRepository.findById(userId);
-        
-        if (userOpt.isEmpty()) {
-            throw new EntityNotFoundException("User not found");
-        }
-        
+        ControllerUtils.findEntityById(userRepository, userId, "User");
         userRepository.deleteById(userId);
         
         return ResponseEntity.ok("User deleted successfully");
@@ -198,24 +184,10 @@ public class UserAdminController {
      */
     @GetMapping("/{userId}/details")
     public ResponseEntity<UserResponse> getUserForDeletion(@PathVariable String userId) {
-        Optional<User> userOpt = userRepository.findById(userId);
-        
-        if (userOpt.isEmpty()) {
-            throw new EntityNotFoundException("User not found");
-        }
-        
-        User user = userOpt.get();
-        UserResponse response = mapToUserResponse(user);
+        User user = ControllerUtils.findEntityById(userRepository, userId, "User");
+        UserResponse response = entityMapper.mapToUserResponse(user);
         
         return ResponseEntity.ok(response);
     }
 
-    private UserResponse mapToUserResponse(User user) {
-        UserResponse response = new UserResponse();
-        response.setUserId(user.getSecUsrId());
-        response.setFirstName(user.getSecUsrFname());
-        response.setLastName(user.getSecUsrLname());
-        response.setUserType(user.getSecUsrType());
-        return response;
-    }
 }

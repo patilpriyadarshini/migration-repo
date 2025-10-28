@@ -5,7 +5,7 @@ import com.modernized.dto.CardUpdateRequest;
 import com.modernized.dto.PagedResponse;
 import com.modernized.entities.Card;
 import com.modernized.repositories.CardRepository;
-import com.modernized.controllers.GlobalExceptionHandler.EntityNotFoundException;
+import com.modernized.utils.ResponseMapperUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -24,7 +23,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/api/cards")
-public class CardController {
+public class CardController extends BaseController {
 
     private final CardRepository cardRepository;
 
@@ -66,7 +65,7 @@ public class CardController {
         }
         
         List<CardResponse> cardResponses = cardPage.getContent().stream()
-                .map(this::mapToCardResponse)
+                .map(ResponseMapperUtil::mapToCardResponse)
                 .collect(Collectors.toList());
         
         PagedResponse<CardResponse> response = new PagedResponse<>(
@@ -91,14 +90,8 @@ public class CardController {
      */
     @GetMapping("/{cardNumber}")
     public ResponseEntity<CardResponse> getCard(@PathVariable String cardNumber) {
-        Optional<Card> cardOpt = cardRepository.findById(cardNumber);
-        
-        if (cardOpt.isEmpty()) {
-            throw new EntityNotFoundException("Card not found");
-        }
-        
-        Card card = cardOpt.get();
-        CardResponse response = mapToCardResponse(card);
+        Card card = findEntityById(cardRepository, cardNumber, "Card");
+        CardResponse response = ResponseMapperUtil.mapToCardResponse(card);
         
         return ResponseEntity.ok(response);
     }
@@ -119,31 +112,15 @@ public class CardController {
             @PathVariable String cardNumber,
             @Valid @RequestBody CardUpdateRequest updateRequest) {
         
-        Optional<Card> cardOpt = cardRepository.findById(cardNumber);
-        
-        if (cardOpt.isEmpty()) {
-            throw new EntityNotFoundException("Card not found");
-        }
-        
-        Card card = cardOpt.get();
+        Card card = findEntityById(cardRepository, cardNumber, "Card");
         updateCardFromRequest(card, updateRequest);
         
         Card savedCard = cardRepository.save(card);
-        CardResponse response = mapToCardResponse(savedCard);
+        CardResponse response = ResponseMapperUtil.mapToCardResponse(savedCard);
         
         return ResponseEntity.ok(response);
     }
 
-    private CardResponse mapToCardResponse(Card card) {
-        CardResponse response = new CardResponse();
-        response.setCardNum(card.getCardNum());
-        response.setAcctId(card.getCardAcctId());
-        response.setCardName(card.getCardEmbossedName());
-        response.setCardStatus(card.getCardActiveStatus());
-        response.setExpiryMonth(Integer.parseInt(card.getCardExpiraionDate().substring(0, 2)));
-        response.setExpiryYear(Integer.parseInt(card.getCardExpiraionDate().substring(3, 7)));
-        return response;
-    }
 
     private void updateCardFromRequest(Card card, CardUpdateRequest request) {
         card.setCardEmbossedName(request.getCardName());

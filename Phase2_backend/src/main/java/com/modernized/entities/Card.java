@@ -25,8 +25,8 @@ public class Card {
     @Column(name = "card_embossed_name", length = 50)
     private String cardEmbossedName;
 
-    @Column(name = "card_expiraion_date", length = 10)
-    private String cardExpiraionDate;
+    @Column(name = "card_expiration_date", length = 10)
+    private String cardExpirationDate;
 
     @Column(name = "card_active_status", length = 1)
     private String cardActiveStatus;
@@ -47,12 +47,12 @@ public class Card {
     public Card() {}
 
     public Card(String cardNum, Long cardAcctId, Integer cardCvvCd,
-               String cardEmbossedName, String cardExpiraionDate, String cardActiveStatus) {
+               String cardEmbossedName, String cardExpirationDate, String cardActiveStatus) {
         this.cardNum = cardNum;
         this.cardAcctId = cardAcctId;
         this.cardCvvCd = cardCvvCd;
         this.cardEmbossedName = cardEmbossedName;
-        this.cardExpiraionDate = cardExpiraionDate;
+        this.cardExpirationDate = cardExpirationDate;
         this.cardActiveStatus = cardActiveStatus;
     }
 
@@ -68,8 +68,8 @@ public class Card {
     public String getCardEmbossedName() { return cardEmbossedName; }
     public void setCardEmbossedName(String cardEmbossedName) { this.cardEmbossedName = cardEmbossedName; }
 
-    public String getCardExpiraionDate() { return cardExpiraionDate; }
-    public void setCardExpiraionDate(String cardExpiraionDate) { this.cardExpiraionDate = cardExpiraionDate; }
+    public String getCardExpirationDate() { return cardExpirationDate; }
+    public void setCardExpirationDate(String cardExpirationDate) { this.cardExpirationDate = cardExpirationDate; }
 
     public String getCardActiveStatus() { return cardActiveStatus; }
     public void setCardActiveStatus(String cardActiveStatus) { this.cardActiveStatus = cardActiveStatus; }

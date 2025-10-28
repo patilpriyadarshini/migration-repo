@@ -6,11 +6,11 @@ import com.modernized.entities.Account;
 import com.modernized.entities.Customer;
 import com.modernized.repositories.AccountRepository;
 import com.modernized.services.AccountValidationService;
-import com.modernized.controllers.GlobalExceptionHandler.EntityNotFoundException;
+import com.modernized.utils.ControllerUtils;
+import com.modernized.utils.EntityMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
-import java.util.Optional;
 
 /**
  * Account Management Controller
@@ -42,15 +42,12 @@ public class AccountController {
      */
     @GetMapping("/{accountId}")
     public ResponseEntity<AccountResponse> getAccount(@PathVariable Long accountId) {
-        Optional<Account> accountOpt = accountRepository.findById(accountId);
+        Account account = ControllerUtils.findEntityOrThrow(
+            accountRepository.findById(accountId), 
+            "Account ID NOT found"
+        );
         
-        if (accountOpt.isEmpty()) {
-            throw new EntityNotFoundException("Account ID NOT found");
-        }
-        
-        Account account = accountOpt.get();
-        AccountResponse response = mapToAccountResponse(account);
-        
+        AccountResponse response = EntityMapper.mapToAccountResponse(account);
         return ResponseEntity.ok(response);
     }
 
@@ -70,94 +67,17 @@ public class AccountController {
             @PathVariable Long accountId,
             @Valid @RequestBody AccountUpdateRequest updateRequest) {
         
-        Optional<Account> accountOpt = accountRepository.findById(accountId);
+        Account account = ControllerUtils.findEntityOrThrow(
+            accountRepository.findById(accountId), 
+            "Account ID NOT found"
+        );
         
-        if (accountOpt.isEmpty()) {
-            throw new EntityNotFoundException("Account ID NOT found");
-        }
-        
-        Account account = accountOpt.get();
-        updateAccountFromRequest(account, updateRequest);
+        EntityMapper.updateAccountFromRequest(account, updateRequest);
         
         Account savedAccount = accountRepository.save(account);
-        AccountResponse response = mapToAccountResponse(savedAccount);
+        AccountResponse response = EntityMapper.mapToAccountResponse(savedAccount);
         
         return ResponseEntity.ok(response);
     }
 
-    private AccountResponse mapToAccountResponse(Account account) {
-        AccountResponse response = new AccountResponse();
-        response.setAcctId(account.getAcctId());
-        response.setAcctActiveStatus(account.getAcctActiveStatus());
-        response.setAcctCurrBal(account.getAcctCurrBal());
-        response.setAcctCreditLimit(account.getAcctCreditLimit());
-        response.setAcctCashCreditLimit(account.getAcctCashCreditLimit());
-        response.setAcctOpenDate(account.getAcctOpenDate());
-        response.setAcctExpiraionDate(account.getAcctExpiraionDate());
-        response.setAcctReissueDate(account.getAcctReissueDate());
-        response.setAcctCurrCycCredit(account.getAcctCurrCycCredit());
-        response.setAcctCurrCycDebit(account.getAcctCurrCycDebit());
-        response.setAcctAddrZip(account.getAcctAddrZip());
-        response.setAcctGroupId(account.getAcctGroupId());
-        
-        if (account.getCustomer() != null) {
-            Customer customer = account.getCustomer();
-            response.setCustomerFirstName(customer.getCustFirstName());
-            response.setCustomerLastName(customer.getCustLastName());
-            response.setCustomerSsn(String.valueOf(customer.getCustSsn()));
-            response.setCustomerDateOfBirth(customer.getCustDobYyyyMmDd());
-            response.setCustomerFicoScore(customer.getCustFicoCreditScore());
-            response.setCustomerPhone1(customer.getCustPhoneNum1());
-            response.setCustomerPhone2(customer.getCustPhoneNum2());
-            response.setCustomerAddress1(customer.getCustAddrLine1());
-            response.setCustomerAddress2(customer.getCustAddrLine2());
-            response.setCustomerCity(customer.getCustAddrLine3());
-            response.setCustomerState(customer.getCustAddrStateCd());
-            response.setCustomerZipCode(customer.getCustAddrZip());
-            response.setCustomerCountry(customer.getCustAddrCountryCd());
-            response.setCustomerGovtIssuedId(customer.getCustGovtIssuedId());
-            response.setCustomerEftAccountId(customer.getCustEftAccountId());
-            response.setCustomerPriCardHolderInd(customer.getCustPriCardHolderInd());
-        }
-        
-        return response;
-    }
-
-    private void updateAccountFromRequest(Account account, AccountUpdateRequest request) {
-        account.setAcctActiveStatus(request.getAcctActiveStatus());
-        account.setAcctCurrBal(request.getAcctCurrBal());
-        account.setAcctCreditLimit(request.getAcctCreditLimit());
-        account.setAcctCashCreditLimit(request.getAcctCashCreditLimit());
-        account.setAcctOpenDate(request.getAcctOpenDate());
-        account.setAcctExpiraionDate(request.getAcctExpiraionDate());
-        account.setAcctReissueDate(request.getAcctReissueDate());
-        account.setAcctCurrCycCredit(request.getAcctCurrCycCredit());
-        account.setAcctCurrCycDebit(request.getAcctCurrCycDebit());
-        account.setAcctAddrZip(request.getAcctAddrZip());
-        account.setAcctGroupId(request.getAcctGroupId());
-        
-        if (account.getCustomer() != null) {
-            Customer customer = account.getCustomer();
-            customer.setCustFirstName(request.getCustomerFirstName());
-            customer.setCustLastName(request.getCustomerLastName());
-            String ssnString = request.getCustomerSsn();
-            if (ssnString != null && !ssnString.trim().isEmpty()) {
-                String cleanSsn = ssnString.replace("-", "").trim();
-                customer.setCustSsn(Long.parseLong(cleanSsn));
-            }
-            customer.setCustDobYyyyMmDd(request.getCustomerDateOfBirth());
-            customer.setCustFicoCreditScore(request.getCustomerFicoScore());
-            customer.setCustPhoneNum1(request.getCustomerPhone1());
-            customer.setCustPhoneNum2(request.getCustomerPhone2());
-            customer.setCustAddrLine1(request.getCustomerAddress1());
-            customer.setCustAddrLine2(request.getCustomerAddress2());
-            customer.setCustAddrLine3(request.getCustomerCity());
-            customer.setCustAddrStateCd(request.getCustomerState());
-            customer.setCustAddrZip(request.getCustomerZipCode());
-            customer.setCustAddrCountryCd(request.getCustomerCountry());
-            customer.setCustGovtIssuedId(request.getCustomerGovtIssuedId());
-            customer.setCustEftAccountId(request.getCustomerEftAccountId());
-            customer.setCustPriCardHolderInd(request.getCustomerPriCardHolderInd());
-        }
-    }
 }

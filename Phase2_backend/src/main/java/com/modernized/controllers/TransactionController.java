@@ -11,6 +11,7 @@ import com.modernized.repositories.CardRepository;
 import com.modernized.repositories.AccountRepository;
 import com.modernized.services.TransactionProcessingService;
 import com.modernized.services.AccountValidationService;
+import com.modernized.utils.ResponseMapper;
 import com.modernized.controllers.GlobalExceptionHandler.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -80,7 +81,7 @@ public class TransactionController {
         }
         
         List<TransactionResponse> transactionResponses = transactionPage.getContent().stream()
-                .map(this::mapToTransactionResponse)
+                .map(ResponseMapper::mapToTransactionResponse)
                 .collect(Collectors.toList());
         
         PagedResponse<TransactionResponse> response = new PagedResponse<>(
@@ -112,7 +113,7 @@ public class TransactionController {
         }
         
         Transaction transaction = transactionOpt.get();
-        TransactionResponse response = mapToTransactionResponse(transaction);
+        TransactionResponse response = ResponseMapper.mapToTransactionResponse(transaction);
         
         return ResponseEntity.ok(response);
     }
@@ -189,26 +190,8 @@ public class TransactionController {
         Transaction savedTransaction = transactionRepository.save(transaction);
         accountRepository.save(account);
         
-        TransactionResponse response = mapToTransactionResponse(savedTransaction);
+        TransactionResponse response = ResponseMapper.mapToTransactionResponse(savedTransaction);
         return ResponseEntity.ok(response);
-    }
-
-    private TransactionResponse mapToTransactionResponse(Transaction transaction) {
-        TransactionResponse response = new TransactionResponse();
-        response.setTranId(transaction.getTranId());
-        response.setCardNum(transaction.getTranCardNum());
-        response.setTranTypeCd(String.valueOf(transaction.getTranTypeCd()));
-        response.setTranCatCd(String.valueOf(transaction.getTranCatCd()));
-        response.setTranSource(transaction.getTranSource());
-        response.setTranDesc(transaction.getTranDesc());
-        response.setTranAmt(transaction.getTranAmt());
-        response.setOrigTs(transaction.getTranOrigTs());
-        response.setProcTs(transaction.getTranProcTs());
-        response.setMerchantId(String.valueOf(transaction.getTranMerchantId()));
-        response.setMerchantName(transaction.getTranMerchantName());
-        response.setMerchantCity(transaction.getTranMerchantCity());
-        response.setMerchantZip(transaction.getTranMerchantZip());
-        return response;
     }
 
     private String generateTransactionId() {

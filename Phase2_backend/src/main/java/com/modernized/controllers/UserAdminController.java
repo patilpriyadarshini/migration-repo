@@ -6,6 +6,7 @@ import com.modernized.dto.UserUpdateRequest;
 import com.modernized.dto.PagedResponse;
 import com.modernized.entities.User;
 import com.modernized.repositories.UserRepository;
+import com.modernized.utils.ResponseMapper;
 import com.modernized.controllers.GlobalExceptionHandler.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -61,7 +62,7 @@ public class UserAdminController {
         }
         
         List<UserResponse> userResponses = userPage.getContent().stream()
-                .map(this::mapToUserResponse)
+                .map(ResponseMapper::mapToUserResponse)
                 .collect(Collectors.toList());
         
         PagedResponse<UserResponse> response = new PagedResponse<>(
@@ -93,7 +94,7 @@ public class UserAdminController {
         }
         
         User user = userOpt.get();
-        UserResponse response = mapToUserResponse(user);
+        UserResponse response = ResponseMapper.mapToUserResponse(user);
         
         return ResponseEntity.ok(response);
     }
@@ -124,7 +125,7 @@ public class UserAdminController {
         user.setSecUsrType(createRequest.getUserType());
         
         User savedUser = userRepository.save(user);
-        UserResponse response = mapToUserResponse(savedUser);
+        UserResponse response = ResponseMapper.mapToUserResponse(savedUser);
         
         return ResponseEntity.ok(response);
     }
@@ -158,7 +159,7 @@ public class UserAdminController {
         user.setSecUsrType(updateRequest.getUserType());
         
         User savedUser = userRepository.save(user);
-        UserResponse response = mapToUserResponse(savedUser);
+        UserResponse response = ResponseMapper.mapToUserResponse(savedUser);
         
         return ResponseEntity.ok(response);
     }
@@ -205,17 +206,9 @@ public class UserAdminController {
         }
         
         User user = userOpt.get();
-        UserResponse response = mapToUserResponse(user);
+        UserResponse response = ResponseMapper.mapToUserResponse(user);
         
         return ResponseEntity.ok(response);
     }
 
-    private UserResponse mapToUserResponse(User user) {
-        UserResponse response = new UserResponse();
-        response.setUserId(user.getSecUsrId());
-        response.setFirstName(user.getSecUsrFname());
-        response.setLastName(user.getSecUsrLname());
-        response.setUserType(user.getSecUsrType());
-        return response;
-    }
 }

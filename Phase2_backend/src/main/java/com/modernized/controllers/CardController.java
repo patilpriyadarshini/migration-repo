@@ -5,6 +5,7 @@ import com.modernized.dto.CardUpdateRequest;
 import com.modernized.dto.PagedResponse;
 import com.modernized.entities.Card;
 import com.modernized.repositories.CardRepository;
+import com.modernized.utils.ResponseMapper;
 import com.modernized.controllers.GlobalExceptionHandler.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -66,7 +67,7 @@ public class CardController {
         }
         
         List<CardResponse> cardResponses = cardPage.getContent().stream()
-                .map(this::mapToCardResponse)
+                .map(ResponseMapper::mapToCardResponse)
                 .collect(Collectors.toList());
         
         PagedResponse<CardResponse> response = new PagedResponse<>(
@@ -98,7 +99,7 @@ public class CardController {
         }
         
         Card card = cardOpt.get();
-        CardResponse response = mapToCardResponse(card);
+        CardResponse response = ResponseMapper.mapToCardResponse(card);
         
         return ResponseEntity.ok(response);
     }
@@ -129,25 +130,14 @@ public class CardController {
         updateCardFromRequest(card, updateRequest);
         
         Card savedCard = cardRepository.save(card);
-        CardResponse response = mapToCardResponse(savedCard);
+        CardResponse response = ResponseMapper.mapToCardResponse(savedCard);
         
         return ResponseEntity.ok(response);
-    }
-
-    private CardResponse mapToCardResponse(Card card) {
-        CardResponse response = new CardResponse();
-        response.setCardNum(card.getCardNum());
-        response.setAcctId(card.getCardAcctId());
-        response.setCardName(card.getCardEmbossedName());
-        response.setCardStatus(card.getCardActiveStatus());
-        response.setExpiryMonth(Integer.parseInt(card.getCardExpiraionDate().substring(0, 2)));
-        response.setExpiryYear(Integer.parseInt(card.getCardExpiraionDate().substring(3, 7)));
-        return response;
     }
 
     private void updateCardFromRequest(Card card, CardUpdateRequest request) {
         card.setCardEmbossedName(request.getCardName());
         card.setCardActiveStatus(request.getCardStatus());
-        card.setCardExpiraionDate(request.getExpiryMonth() + "/" + request.getExpiryYear());
+        card.setCardExpirationDate(request.getExpiryMonth() + "/" + request.getExpiryYear());
     }
 }

@@ -8,12 +8,12 @@ INSERT INTO customer (cust_id, cust_first_name, cust_last_name, cust_dob_yyyy_mm
 (1002, 'Bob', 'Williams', '1978-07-22', 987654321, 680, '555-0201', NULL, '456 Oak Ave', NULL, 'Los Angeles', 'CA', '90210', 'USA'),
 (1003, 'Carol', 'Brown', '1992-11-08', 456789123, 720, '555-0301', '555-0302', '789 Pine Rd', 'Suite 100', 'Chicago', 'IL', '60601', 'USA');
 
-INSERT INTO account (acct_id, acct_cust_id, acct_active_status, acct_curr_bal, acct_credit_limit, acct_cash_credit_limit, acct_open_date, acct_expiraion_date, acct_reissue_date, acct_curr_cyc_credit, acct_curr_cyc_debit, acct_addr_zip, acct_group_id) VALUES
+INSERT INTO account (acct_id, acct_cust_id, acct_active_status, acct_curr_bal, acct_credit_limit, acct_cash_credit_limit, acct_open_date, acct_expiration_date, acct_reissue_date, acct_curr_cyc_credit, acct_curr_cyc_debit, acct_addr_zip, acct_group_id) VALUES
 (12345678901, 1001, 'Y', 1500.00, 5000.00, 1000.00, '2020-01-15', '2027-01-15', '2023-01-15', 2500.00, 1000.00, '10001', 'GRP001'),
 (12345678902, 1002, 'Y', 750.50, 3000.00, 500.00, '2019-06-10', '2027-06-10', '2022-06-10', 1200.00, 450.50, '90210', 'GRP002'),
 (12345678903, 1003, 'Y', 0.00, 7500.00, 1500.00, '2021-03-20', '2027-03-20', '2024-03-20', 0.00, 0.00, '60601', 'GRP003');
 
-INSERT INTO card (card_num, card_acct_id, card_embossed_name, card_active_status, card_expiraion_date) VALUES
+INSERT INTO card (card_num, card_acct_id, card_embossed_name, card_active_status, card_expiration_date) VALUES
 ('4111111111111111', 12345678901, 'Alice Johnson', 'Y', '12/2025'),
 ('4111111111111112', 12345678902, 'Bob Williams', 'Y', '06/2024'),
 ('4111111111111113', 12345678903, 'Carol Brown', 'Y', '03/2026'),
